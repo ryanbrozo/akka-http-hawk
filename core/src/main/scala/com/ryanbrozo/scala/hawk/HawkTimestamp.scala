@@ -37,7 +37,7 @@ import org.parboiled.common.Base64
   *
   * Created by rye on 2/6/15.
   */
-private[hawk] case class HawkTimestamp(ts: Long, credentials: HawkUser) {
+case class HawkTimestamp(ts: Long, credentials: HawkUser) {
 
   /**
     * Normalized string that will be used for calculating the MAC

@@ -29,7 +29,7 @@ import javax.crypto.spec.SecretKeySpec
 
 import org.parboiled.common.Base64
 
-private[hawk] object Hawk {
+object Hawk {
   val TYPE_HEADER = "header"
   val TYPE_RESPONSE = "response"
   val TYPE_BEWIT = "bewit"

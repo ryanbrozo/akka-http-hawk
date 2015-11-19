@@ -97,13 +97,13 @@ package object hawk {
   /**
     * List of parameters used for calculating MAC of a request
     */
-  private[hawk] object HawkOptionKeys extends Enumeration {
+  object HawkOptionKeys extends Enumeration {
     val Method, Uri, Host, Port, Ts, Nonce, Hash, Ext, App, Dlg = Value
   }
 
-  private[hawk] type HawkOptions = Map[HawkOptionKeys.Value, String]
+  type HawkOptions = Map[HawkOptionKeys.Value, String]
 
-  private[hawk] type HawkAuthParams = Map[AuthHeaderKeys.Value, String]
+  type HawkAuthParams = Map[AuthHeaderKeys.Value, String]
 
   /**
     * Represents a function that retrieves a user object of type U

@@ -22,37 +22,25 @@
  * SOFTWARE.
  */
 
-package com.ryanbrozo.scala.hawk
+package com.ryanbrozo.akka.http.hawk
 
-import java.security.MessageDigest
+import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.server.Directives._
+import org.scalatest._
 
-import org.parboiled.common.Base64
+class HawkAuthenticatorSpec
+  extends FlatSpec
+  with Matchers
+  with ScalatestRouteTest {
 
-/**
-  * Class that represents a payload that is used for computing a Hawk header
-  * with payload validation
-  *
-  * @param payload Actual payload
-  * @param contentType Content-Type of the payload
-  * @param algorithm Hashing algorithm to use
-  */
-case class HawkPayload(payload: Array[Byte], contentType: String, algorithm: HashAlgorithms.Value) {
+  override implicit val executor = system.dispatcher
 
-  /**
-    * Normalized request string
-    */
-  private[hawk] lazy val _normalized: String = {
-    s"""${HEADER_NAME.toLowerCase}.$HEADER_VERSION.payload
-       |${contentType.toLowerCase}
-       |${new String(payload, "UTF-8")}
-       |""".stripMargin
+  "HawkAuthenticator" should "authenticate" in {
+    Get() ~> {
+      complete("test")
+    } ~> check {
+      responseAs[String] should be("test")
+    }
   }
 
-  /**
-    * Calculated hashed payload header
-    */
-  lazy val hash: String = {
-    val digest = MessageDigest.getInstance(algorithm.toString)
-    Base64.rfc2045().encodeToString(digest.digest(_normalized.getBytes("UTF-8")), false)
-  }
 }

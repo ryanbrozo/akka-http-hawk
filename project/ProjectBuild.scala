@@ -4,6 +4,7 @@ import sbt._
 object BuildDependencies {
   private val AKKA_VERSION = "2.3.12"
   private val AKKA_STREAMS_VERSION = "2.0-M1"
+  val SPRAY_VERSION = "1.3.1"
 
   // Dependencies
   val akkaStreams =       "com.typesafe.akka"             %% "akka-stream-experimental"                  % AKKA_STREAMS_VERSION
@@ -12,6 +13,7 @@ object BuildDependencies {
   val akkaHttpTestKit =   "com.typesafe.akka"             %% "akka-http-testkit-experimental"            % AKKA_STREAMS_VERSION   % "test"
   val akkaHttpSprayJson = "com.typesafe.akka"             %% "akka-http-spray-json-experimental"         % AKKA_STREAMS_VERSION
   val akkaActor =         "com.typesafe.akka"             %% "akka-actor"                                % AKKA_VERSION
+  val sprayCaching =      "io.spray"                      %% "spray-caching"                             % SPRAY_VERSION
   val parboiled =         "org.parboiled"                 %% "parboiled-scala"                           % "1.1.7"
   val scalaLogging =      "com.typesafe.scala-logging"    %% "scala-logging"                             % "3.1.0"
   val logback =           "ch.qos.logback"                %  "logback-classic"                           % "1.0.13"
@@ -78,6 +80,7 @@ object BuildSettings {
       akkaHttpCore % "provided",
       akkaHttp % "provided",
       akkaHttpTestKit,
+      sprayCaching,
       scalaLogging,
       logback,
       scalaTest

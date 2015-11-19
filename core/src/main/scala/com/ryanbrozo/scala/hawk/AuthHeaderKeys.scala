@@ -27,7 +27,7 @@ package com.ryanbrozo.scala.hawk
 /**
   * List of parameters used in Authorization header supplied in a client request
   */
-private[hawk] object AuthHeaderKeys extends Enumeration {
+object AuthHeaderKeys extends Enumeration {
   /**
     * User identifier
     */
