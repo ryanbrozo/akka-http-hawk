@@ -11,7 +11,6 @@ object BuildDependencies {
   val akkaHttpCore =      "com.typesafe.akka"             %% "akka-http-core-experimental"               % AKKA_STREAMS_VERSION
   val akkaHttp =          "com.typesafe.akka"             %% "akka-http-experimental"                    % AKKA_STREAMS_VERSION
   val akkaHttpTestKit =   "com.typesafe.akka"             %% "akka-http-testkit-experimental"            % AKKA_STREAMS_VERSION   % "test"
-  val akkaHttpSprayJson = "com.typesafe.akka"             %% "akka-http-spray-json-experimental"         % AKKA_STREAMS_VERSION
   val akkaActor =         "com.typesafe.akka"             %% "akka-actor"                                % AKKA_VERSION
   val sprayCaching =      "io.spray"                      %% "spray-caching"                             % SPRAY_VERSION
   val parboiled =         "org.parboiled"                 %% "parboiled-scala"                           % "1.1.7"
