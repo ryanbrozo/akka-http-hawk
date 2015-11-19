@@ -114,7 +114,7 @@ private[hawk] trait Util extends StrictLogging {
 //  /**
 //    * Extracts payload information that is essential for Hawk payload validation from a message
 //    *
-//    * @param req Spray HttpMessage instance, usually coming from the current Spray RequestContext
+//    * @param req Akka Http [[HttpMessage]] instance, usually coming from the current Akka Http [[RequestContext]]
 //    * @return Payload data represented as byte array and it's corresponding Content-Type, wrapped as an Option
 //    */
 //  private[hawk] def extractPayload(req: HttpMessage): Option[(Array[Byte], String)] = {
@@ -134,7 +134,7 @@ private[hawk] trait Util extends StrictLogging {
 //  }
 
   private[hawk] def extractUriString(uri: Uri): String = {
-    // Spray URI separates path from additional query parameters
+    // Akka Http URI separates path from additional query parameters
     // so we should append a '?' if query parameters are present
     uri.path.toString() + (uri.query() match {
       case Query.Empty => ""

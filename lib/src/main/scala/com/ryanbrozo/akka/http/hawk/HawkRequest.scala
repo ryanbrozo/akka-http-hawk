@@ -28,9 +28,9 @@ import akka.http.scaladsl.model.HttpRequest
 import com.ryanbrozo.scala.hawk._
 
 /**
-  * Class that extracts parameters relevant to Hawk authentication from a Spray HttpRequest instance.
+  * Class that extracts parameters relevant to Hawk authentication from a Akka Http [[HttpRequest]] instance.
   *
-  * @param request Spray HttpRequest instance to extract information to from
+  * @param request Akka Http [[HttpRequest]] instance to extract information to from
   */
 private [hawk] case class HawkRequest(request: HttpRequest) {
 
