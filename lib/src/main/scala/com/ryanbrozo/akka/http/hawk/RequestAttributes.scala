@@ -45,7 +45,7 @@ private[hawk] case class RequestAttributes(request: HttpRequest) extends Util {
 
   private val _rawUri = request.uri
 
-  lazy val method: String = request.method.toString()
+  lazy val method: String = request.method.name
   lazy val host: String = _rawUri.authority.host.toString.toLowerCase
   lazy val port: Int = _rawUri.authority.port match {
     case i if i > 0 => i

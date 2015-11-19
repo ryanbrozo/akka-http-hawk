@@ -48,6 +48,16 @@ object HawkAuthenticator {
   private val _timeSkewInSeconds = _conf.getLong("akka.http.hawk.timeSkewInSeconds")
   private val _maxUserRetrieverTimeInSeconds = _conf.getLong("akka.http.hawk.maxUserRetrieverTimeInSeconds") seconds
 
+
+  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String): AuthenticationDirective[U] =
+    authenticateHawk(userRetriever, realm, Util.defaultTimestampProvider, Util.defaultNonceValidator)
+
+  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, timestampProvider: TimeStampProvider): AuthenticationDirective[U] =
+    authenticateHawk(userRetriever, realm, timestampProvider, Util.defaultNonceValidator)
+
+  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, nonceValidator: NonceValidator): AuthenticationDirective[U] =
+    authenticateHawk(userRetriever, realm, Util.defaultTimestampProvider, nonceValidator)
+
   def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, timestampProvider: TimeStampProvider,
                                       nonceValidator: NonceValidator): AuthenticationDirective[U] = {
     extractExecutionContext.flatMap { implicit ec ⇒
