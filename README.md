@@ -1,6 +1,6 @@
 akka-http-hawk
 ==========
-[![Build Status](https://travis-ci.org/ryanbrozo/spray-hawk.svg)](https://travis-ci.org/ryanbrozo/akka-http-hawk)
+[![Build Status](https://travis-ci.org/ryanbrozo/akka-http-hawk.svg?branch=master)](https://travis-ci.org/ryanbrozo/akka-http-hawk)
 
 **akka-http-hawk** is a library that adds [Hawk Authentication](https://github.com/hueniverse/hawk) to [Akka HTTP](http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0-M1/scala/http/). 
 
