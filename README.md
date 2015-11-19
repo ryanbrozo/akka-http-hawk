@@ -4,7 +4,7 @@ akka-http-hawk
 
 **akka-http-hawk** is a library that adds [Hawk Authentication](https://github.com/hueniverse/hawk) to [Akka HTTP](http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0-M1/scala/http/). 
 
-Current code is still in early development
+Current [spray-hawk](https://github.com/ryanbrozo/spray-hawk) code is being migrated to this project and is still in early development.
 
 ### Prerequisites
 * Scala 2.11.x
