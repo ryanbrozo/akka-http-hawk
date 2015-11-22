@@ -33,41 +33,27 @@ import org.scalatest._
 
 import scala.concurrent.duration._
 
-class BewitSpec extends FlatSpec with Matchers with ScalatestRouteTest {
+class ReplayProtectionSpec extends FlatSpec with Matchers with ScalatestRouteTest {
 
   import common.Imports._
 
   override implicit val executor = system.dispatcher
   implicit val routeTestTimeout = RouteTestTimeout(FiniteDuration(60, SECONDS))
 
-  "The 'authenticateHawk()' directive" should "properly authenticate if authentication information is encoded in a bewit" in {
-    Get("http://example.com:8000/resource/1?b=1&a=2&bewit=ZGgzN2ZnajQ5MmplXDEzNTM4MzYyMzRcZ2tIRXZVU3VWVis5aEEzcnd6R2hadDM3RnlVZk5xdnNacHQzMHNoUGZFcz1cc3ByYXktaGF3aw%3D%3D") ~> {
-      authenticateHawk(userRetrieverDoAuth, realm) { user =>
+  "The 'authenticateHawk()' directive" should "reject requests when nonce is non-unique" in {
+      Get("http://example.com:8000/resource/1?b=1&a=2")
+        .withHeaders(Authorization(hawkCredentials_GET_withPort) :: Nil) ~>
+        authenticateHawk(userRetrieverDoAuth, realm, defaultTimeGenerator _, Util.defaultNonceValidator) { user =>
         complete(user.name)
-      }
-    } ~> check {
+      } ~> check {
       responseAs[String] === "Bob"
     }
-  }
-
-  it should "reject the request if both Hawk Authorization header and bewit parameter are present" in {
-    Get("http://example.com:8000/resource/1?b=1&a=2&bewit=ZGgzN2ZnajQ5MmplXDEzNTM4MzYyMzRcZ2tIRXZVU3VWVis5aEEzcnd6R2hadDM3RnlVZk5xdnNacHQzMHNoUGZFcz1cc3ByYXktaGF3aw%3D%3D")
+    Get("http://example.com:8000/resource/1?b=1&a=2")
       .withHeaders(Authorization(hawkCredentials_GET_withPort) :: Nil) ~>
-      authenticateHawk(userRetrieverDoAuth, realm, defaultTimeGenerator _, Util.stupidNonceValidator) { user =>
+      authenticateHawk(userRetrieverDoAuth, realm, defaultTimeGenerator _, Util.defaultNonceValidator) { user =>
         complete(user.name)
       } ~> check {
-      rejection === produceHawkRejection(MultipleAuthenticationError)
-    }
-  }
-
-  it should "properly authenticate if both bewit is and an Authentication header with scheme other than Hawk is present" in {
-    Get("http://example.com:8000/resource/1?b=1&a=2&bewit=ZGgzN2ZnajQ5MmplXDEzNTM4MzYyMzRcZ2tIRXZVU3VWVis5aEEzcnd6R2hadDM3RnlVZk5xdnNacHQzMHNoUGZFcz1cc3ByYXktaGF3aw%3D%3D")
-      .withHeaders(Authorization(BasicHttpCredentials("someuser", "somepassword")) :: Nil) ~>
-      authenticateHawk(userRetrieverDoAuth, realm, defaultTimeGenerator _, Util.stupidNonceValidator) { user =>
-        complete(user.name)
-      } ~> check {
-      responseAs[String] === "Bob"
+      rejection === produceHawkRejection(InvalidNonceError)
     }
   }
 }
-
