@@ -25,6 +25,9 @@
 package com.ryanbrozo.akka.http.hawk
 
 import akka.http.scaladsl.model.HttpRequest
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import com.ryanbrozo.scala.hawk._
 
 /**
@@ -32,7 +35,7 @@ import com.ryanbrozo.scala.hawk._
   *
   * @param request Akka Http [[HttpRequest]] instance to extract information to from
   */
-private [hawk] case class HawkRequest(request: HttpRequest) {
+private [hawk] case class HawkRequest(request: HttpRequest)(implicit materializer: Materializer) extends Util {
 
   /**
     * Hawk options extracted from the request (host, port, uri, and method)
@@ -83,9 +86,10 @@ private [hawk] case class HawkRequest(request: HttpRequest) {
   /**
     * Payload associated with the request with associated media type
     */
-  // TODO: Add Payload extraction
-  //  lazy val payload: Option[(Array[Byte], String)] = extractPayload(request)
   lazy val payload: Option[(Array[Byte], String)] = None
+//  lazy val payload: Option[(Array[Byte], String)] = {
+//    extractPayload(request).fore
+//  }
 
   /**
     * Determines whether this request has given authorization parameters

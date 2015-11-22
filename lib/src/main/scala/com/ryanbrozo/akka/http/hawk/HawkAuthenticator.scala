@@ -29,6 +29,8 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives._
+import akka.stream.Materializer
+import akka.util.ByteString.ByteString1C
 import com.ryanbrozo.akka.http.hawk.HawkError._
 import com.ryanbrozo.scala.hawk._
 import com.typesafe.config.ConfigFactory
@@ -60,15 +62,17 @@ object HawkAuthenticator {
 
   def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, timestampProvider: TimeStampProvider,
                                       nonceValidator: NonceValidator): AuthenticationDirective[U] = {
-    extractExecutionContext.flatMap { implicit ec ⇒
-      extractRequest.flatMap { req =>
-        val hawkRequest = HawkRequest(req)
-        val authenticator = new HawkAuthenticator[U](timestampProvider, nonceValidator)(realm, userRetriever)
-        onSuccess(authenticator.authenticate(hawkRequest)).flatMap {
-          case Right(u) =>
-            provide(u)
-          case Left(e) =>
-            reject(HawkRejection(e, authenticator.getChallengeHeaders(e))): Directive1[U]
+    extractMaterializer.flatMap { implicit mat =>
+      extractExecutionContext.flatMap { implicit ec ⇒
+        extractRequest.flatMap { req =>
+          val hawkRequest = HawkRequest(req)
+          val authenticator = new HawkAuthenticator[U](timestampProvider, nonceValidator)(realm, userRetriever)
+          onSuccess(authenticator.authenticate(hawkRequest)).flatMap {
+            case Right(u) =>
+              provide(u)
+            case Left(e) =>
+              reject(HawkRejection(e, authenticator.getChallengeHeaders(e))): Directive1[U]
+          }
         }
       }
     }

@@ -24,8 +24,13 @@
 
 package com.ryanbrozo.akka.http.hawk.common
 
-import com.ryanbrozo.akka.http.hawk.common.Imports.User
+import akka.http.scaladsl.model.HttpHeader
+import akka.http.scaladsl.model.headers.{HttpChallenge, `WWW-Authenticate`}
+import com.ryanbrozo.akka.http.hawk.{HawkRejection, HawkError}
+import com.ryanbrozo.akka.http.hawk.common.Imports._
 import com.ryanbrozo.scala.hawk._
+
+import scala.concurrent.Future
 
 trait Common {
 
@@ -54,5 +59,44 @@ trait Common {
     * @return Constant moment in time (1353832234L)
     */
   def defaultTimeGenerator: TimeStamp = defaultTime
+
+  /**
+    * Test exception to throw when testing our routes
+    */
+  object TestException extends RuntimeException
+
+  /**
+    * A UserRetriever that always does not authenticate
+    */
+  val userRetrieverDontAuth: UserRetriever[User] = { _ => Future.successful(None) }
+
+  /**
+    * A UserRetriever that always authenticates
+    */
+  val userRetrieverDoAuth: UserRetriever[User] = { _ => Future.successful(Some(hawkUser)) }
+
+  /**
+    * A UserRetriever that always throws an exception
+    */
+  val userRetrieverThrowException: UserRetriever[User] = { _ => throw TestException }
+
+  /**
+    * Produces a WWW-Authenticate header
+    * @param params Map of additional attributes to be added to the WWW-Authenticate header
+    * @return WWW-Authenticate header
+    */
+  def produceWwwAuthHeader(params: Map[String, String]): List[HttpHeader] = {
+    `WWW-Authenticate`(HttpChallenge("Hawk", realm, params)) :: Nil
+  }
+
+  /**
+    * Produce a WWW-Authenticate header with additional error attribute
+    * @param error Error string
+    */
+  def produceWwwAuthHeader(error: String): List[HttpHeader] = produceWwwAuthHeader(Map("error" -> error))
+
+  def produceHawkRejection(hawkError: HawkError): HawkRejection = {
+    HawkRejection(hawkError, produceWwwAuthHeader(hawkError.message))
+  }
 
 }

@@ -24,17 +24,15 @@
 
 package com.ryanbrozo.akka.http.hawk
 
-import akka.http.scaladsl.model.{StatusCodes, HttpHeader}
 import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{Route, ExceptionHandler}
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit._
 import com.ryanbrozo.akka.http.hawk.HawkAuthenticator._
 import com.ryanbrozo.akka.http.hawk.HawkError._
-import com.ryanbrozo.scala.hawk._
 import org.scalatest._
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class HawkAuthenticatorSpec
@@ -47,43 +45,6 @@ class HawkAuthenticatorSpec
   override implicit val executor = system.dispatcher
   implicit val routeTestTimeout = RouteTestTimeout(FiniteDuration(60, SECONDS))
 
-  object TestException extends RuntimeException
-
-  /**
-    * A UserRetriever that always does not authenticate
-    */
-  val userRetrieverDontAuth: UserRetriever[User] = { _ => Future.successful(None) }
-
-  /**
-    * A UserRetriever that always authenticates
-    */
-  val userRetrieverDoAuth: UserRetriever[User] = { _ => Future.successful(Some(hawkUser)) }
-
-
-  /**
-    * A UserRetriever that always throws an exception
-    */
-  val userRetrieverThrowException: UserRetriever[User] = { _ => throw TestException }
-
-
-  /**
-    * Produces a WWW-Authenticate header
-    * @param params Map of additional attributes to be added to the WWW-Authenticate header
-    * @return WWW-Authenticate header
-    */
-  def produceWwwAuthHeader(params: Map[String, String]): List[HttpHeader] = {
-    `WWW-Authenticate`(HttpChallenge("Hawk", realm, params)) :: Nil
-  }
-
-  /**
-    * Produce a WWW-Authenticate header with additional error attribute
-    * @param error Error string
-    */
-  def produceWwwAuthHeader(error: String): List[HttpHeader] = produceWwwAuthHeader(Map("error" -> error))
-
-  def produceHawkRejection(hawkError: HawkError): HawkRejection = {
-    HawkRejection(hawkError, produceWwwAuthHeader(hawkError.message))
-  }
 
   "The authenticateHawk() directive" should "reject requests without Authorization header with an AuthenticationRequiredRejection" in {
     Get() ~> {

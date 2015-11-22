@@ -26,6 +26,10 @@ package com.ryanbrozo.akka.http.hawk
 
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString.ByteString1C
+import akka.util.{ByteStringBuilder, CompactByteString, ByteString}
 import com.ryanbrozo.scala.hawk._
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
@@ -114,23 +118,29 @@ private[hawk] trait Util extends StrictLogging {
 //  /**
 //    * Extracts payload information that is essential for Hawk payload validation from a message
 //    *
-//    * @param req Akka Http [[HttpMessage]] instance, usually coming from the current Akka Http [[RequestContext]]
+//    * @param req Akka Http [[HttpMessage]] instance, usually coming from the current Akka Http [[akka.http.scaladsl.server.RequestContext]]
 //    * @return Payload data represented as byte array and it's corresponding Content-Type, wrapped as an Option
 //    */
-//  private[hawk] def extractPayload(req: HttpMessage): Option[(Array[Byte], String)] = {
+//  private[hawk] def extractPayload(req: HttpMessage)(implicit materializer: Materializer): Option[(Source[ByteString, Any], String)] = {
 //    val entity = req.entity()
 //    if (entity.isKnownEmpty()) {
 //      None
 //    }
 //    else {
+//      val contentType = entity.contentType().mediaType.toString()
+//      val builder = new ByteStringBuilder()
+//
+//
+//
+//      Some((entity.dataBytes, contentType))
 //    }
-//    req.entity match {
-//      case e: NonEmpty =>
-//        val data = e.data.toByteArray
-//        val contentType = e.contentType.mediaType.toString()
-//        Some((data, contentType))
-//      case Empty => None
-//    }
+////    req.entity match {
+////      case e: NonEmpty =>
+////        val data = e.data.toByteArray
+////        val contentType = e.contentType.mediaType.toString()
+////        Some((data, contentType))
+////      case Empty => None
+////    }
 //  }
 
   private[hawk] def extractUriString(uri: Uri): String = {
