@@ -1,10 +1,11 @@
 import sbt.Keys._
 import sbt._
+import sbtassembly.AssemblyKeys._
 
 object BuildDependencies {
   private val AKKA_VERSION = "2.4.4"
 //  private val AKKA_STREAMS_VERSION = "2.0-M1"
-  val SPRAY_VERSION = "1.3.1"
+  val SPRAY_VERSION = "1.3.3"
 
   // Dependencies
   val akkaStreams =       "com.typesafe.akka"             %% "akka-stream"                               % AKKA_VERSION
@@ -14,9 +15,9 @@ object BuildDependencies {
   val akkaActor =         "com.typesafe.akka"             %% "akka-actor"                                % AKKA_VERSION
   val sprayCaching =      "io.spray"                      %% "spray-caching"                             % SPRAY_VERSION
   val parboiled =         "org.parboiled"                 %% "parboiled-scala"                           % "1.1.7"
-  val scalaLogging =      "com.typesafe.scala-logging"    %% "scala-logging"                             % "3.1.0"
+  val scalaLogging =      "com.typesafe.scala-logging"    %% "scala-logging"                             % "3.4.0"
   val logback =           "ch.qos.logback"                %  "logback-classic"                           % "1.0.13"
-  val scalaTest =         "org.scalatest"                 %% "scalatest"                                 % "2.2.4"                % "test"
+  val scalaTest =         "org.scalatest"                 %% "scalatest"                                 % "2.2.6"                % "test"
 }
 
 object BuildSettings {
@@ -87,6 +88,7 @@ object BuildSettings {
       scalaTest
     ),
     autoAPIMappings := true,
+    assemblyJarName in assembly := "akka-http-hawk-lib.jar",
     scalacOptions in Test ++= Seq("-Yrangepos", "-deprecation")
   )
 

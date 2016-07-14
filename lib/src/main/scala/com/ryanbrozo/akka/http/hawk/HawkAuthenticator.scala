@@ -29,15 +29,13 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives._
-import akka.stream.Materializer
-import akka.util.ByteString.ByteString1C
 import com.ryanbrozo.akka.http.hawk.HawkError._
 import com.ryanbrozo.scala.hawk._
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.{implicitConversions, postfixOps}
 import scala.util._
 
@@ -49,6 +47,7 @@ object HawkAuthenticator {
   private val _timeSkewValidationEnabled = _conf.getBoolean("akka.http.hawk.timeSkewValidation")
   private val _timeSkewInSeconds = _conf.getLong("akka.http.hawk.timeSkewInSeconds")
   private val _maxUserRetrieverTimeInSeconds = _conf.getLong("akka.http.hawk.maxUserRetrieverTimeInSeconds") seconds
+  private val _nonceValidationEnabled = _conf.getBoolean("akka.http.hawk.nonceValidationEnabled")
 
 
   def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String): AuthenticationDirective[U] =
@@ -77,6 +76,15 @@ object HawkAuthenticator {
       }
     }
   }
+
+  val hawkRejectionHandler = RejectionHandler.newBuilder()
+    .handle {
+      case HawkRejection(cause, challengeHeaders) =>
+        respondWithHeaders(challengeHeaders){
+          complete(cause.code, cause.message)
+        }
+    }
+    .result()
 
 
 }
@@ -216,12 +224,15 @@ class HawkAuthenticator[U <: HawkUser](timestampProvider: TimeStampProvider, non
     def checkPayload(implicit hawkUser: U): Either[HawkError, U] = {
       hawkRequest.authHeaderAttributes.hash match {
         case Some(hash) if _payloadValidationEnabled =>
-          (for {
-            (payload, contentType) <- hawkRequest.payload
-            hawkPayload <- Option(HawkPayload(payload, contentType, hawkUser.algorithm.hashAlgo))
-            if hawkPayload.hash == hash
-          } yield Right(hawkUser))
-            .getOrElse(Left(InvalidPayloadHashError))
+//          (for {
+//            f <- hawkRequest.payload
+//            (payload, contentType) <- f.
+//            hawkPayload <- Option(HawkPayload(payload, contentType, hawkUser.algorithm.hashAlgo))
+//            if hawkPayload.hash == hash
+//          } yield Right(hawkUser))
+//            .getOrElse(Left(InvalidPayloadHashError))
+
+          Right(hawkUser)
         case _ =>
           // 'hash' is not supplied? then no payload validation is needed.
           // Return the obtained credentials
@@ -230,10 +241,13 @@ class HawkAuthenticator[U <: HawkUser](timestampProvider: TimeStampProvider, non
     }
 
     def checkNonce(implicit hawkUser: U): Either[HawkError, U] = {
-      hawkRequest.authHeaderAttributes.nonce match {
-        case Some(n) if nonceValidator(n, hawkUser.key, hawkRequest.authHeaderAttributes.ts) => Right(hawkUser)
-        case _ => Left(InvalidNonceError)
+      if (_nonceValidationEnabled) {
+        hawkRequest.authHeaderAttributes.nonce match {
+          case Some(n) if nonceValidator(n, hawkUser.key, hawkRequest.authHeaderAttributes.ts) => Right(hawkUser)
+          case _ => Left(InvalidNonceError)
+        }
       }
+      else Right(hawkUser)
     }
 
     def checkTimestamp(implicit hawkUser: U): Either[HawkError, U] = {

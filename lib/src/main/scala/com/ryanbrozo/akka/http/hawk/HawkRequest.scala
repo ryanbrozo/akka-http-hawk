@@ -26,9 +26,9 @@ package com.ryanbrozo.akka.http.hawk
 
 import akka.http.scaladsl.model.HttpRequest
 import akka.stream.Materializer
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
 import com.ryanbrozo.scala.hawk._
+
+import scala.concurrent._
 
 /**
   * Class that extracts parameters relevant to Hawk authentication from a Akka Http [[HttpRequest]] instance.
@@ -83,13 +83,10 @@ private [hawk] case class HawkRequest(request: HttpRequest)(implicit materialize
       HawkOptionKeys.Ext -> Option(bewitAttributes.ext)).collect { case (k, Some(v)) => k -> v }
   }
 
-  /**
-    * Payload associated with the request with associated media type
-    */
-  lazy val payload: Option[(Array[Byte], String)] = None
-//  lazy val payload: Option[(Array[Byte], String)] = {
-//    extractPayload(request).fore
-//  }
+//  /**
+//    * Payload associated with the request with associated media type
+//    */
+//  lazy val payload: Future[Option[(Array[Byte], String)]] = extractPayload(request)
 
   /**
     * Determines whether this request has given authorization parameters

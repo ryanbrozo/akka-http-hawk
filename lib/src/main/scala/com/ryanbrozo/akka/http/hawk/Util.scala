@@ -24,10 +24,14 @@
 
 package com.ryanbrozo.akka.http.hawk
 
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+import java.nio.channels.Channels
+
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.stream.Materializer
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString.ByteString1C
 import akka.util.{ByteStringBuilder, CompactByteString, ByteString}
 import com.ryanbrozo.scala.hawk._
@@ -35,9 +39,10 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 import spray.caching.ExpiringLruCache
 import scala.compat.Platform
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
-import scala.util.Random
+import scala.util.{Failure, Random, Success}
 
 
 /**
@@ -121,26 +126,19 @@ private[hawk] trait Util extends StrictLogging {
 //    * @param req Akka Http [[HttpMessage]] instance, usually coming from the current Akka Http [[akka.http.scaladsl.server.RequestContext]]
 //    * @return Payload data represented as byte array and it's corresponding Content-Type, wrapped as an Option
 //    */
-//  private[hawk] def extractPayload(req: HttpMessage)(implicit materializer: Materializer): Option[(Source[ByteString, Any], String)] = {
+//  private[hawk] def extractPayload(req: HttpMessage)(implicit materializer: Materializer): Future[Option[(Array[Byte], String)]] = {
 //    val entity = req.entity()
 //    if (entity.isKnownEmpty()) {
-//      None
+//      Future.successful(None)
 //    }
 //    else {
 //      val contentType = entity.contentType().mediaType.toString()
-//      val builder = new ByteStringBuilder()
 //
-//
-//
-//      Some((entity.dataBytes, contentType))
+//      entity.dataBytes
+//        .map { _.toArray[Byte] }
+//        .runFold(Array[Byte]()){ (a,b) => a ++ b }
+//        .map { a => Option((a, contentType)) }
 //    }
-////    req.entity match {
-////      case e: NonEmpty =>
-////        val data = e.data.toByteArray
-////        val contentType = e.contentType.mediaType.toString()
-////        Some((data, contentType))
-////      case Empty => None
-////    }
 //  }
 
   private[hawk] def extractUriString(uri: Uri): String = {
