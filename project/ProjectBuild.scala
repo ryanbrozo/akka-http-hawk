@@ -110,6 +110,10 @@ object BuildSettings {
   lazy val clientSettings = Seq(
     libraryDependencies ++= Seq(
       akkaActor,
+      akkaStreams,
+      akkaHttpCore,
+      akkaHttp,
+      akkaHttpTestKit,
       scalaLogging,
       logback,
       scalaTest

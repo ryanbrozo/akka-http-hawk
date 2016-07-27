@@ -35,7 +35,7 @@ import scala.concurrent._
   *
   * @param request Akka Http [[HttpRequest]] instance to extract information to from
   */
-private [hawk] case class HawkRequest(request: HttpRequest)(implicit materializer: Materializer) extends Util {
+private [hawk] case class HawkRequest(request: HttpRequest)(implicit materializer: Materializer, executionContext: ExecutionContext) extends Util {
 
   /**
     * Hawk options extracted from the request (host, port, uri, and method)
@@ -83,10 +83,10 @@ private [hawk] case class HawkRequest(request: HttpRequest)(implicit materialize
       HawkOptionKeys.Ext -> Option(bewitAttributes.ext)).collect { case (k, Some(v)) => k -> v }
   }
 
-//  /**
-//    * Payload associated with the request with associated media type
-//    */
-//  lazy val payload: Future[Option[(Array[Byte], String)]] = extractPayload(request)
+  /**
+    * Payload associated with the request with associated media type
+    */
+  lazy val payload: Future[Option[(Array[Byte], String)]] = extractPayload(request)
 
   /**
     * Determines whether this request has given authorization parameters

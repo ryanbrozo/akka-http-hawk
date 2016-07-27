@@ -39,7 +39,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 import spray.caching.ExpiringLruCache
 import scala.compat.Platform
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.{Failure, Random, Success}
@@ -120,26 +120,26 @@ object Util {
 
 private[hawk] trait Util extends StrictLogging {
 
-//  /**
-//    * Extracts payload information that is essential for Hawk payload validation from a message
-//    *
-//    * @param req Akka Http [[HttpMessage]] instance, usually coming from the current Akka Http [[akka.http.scaladsl.server.RequestContext]]
-//    * @return Payload data represented as byte array and it's corresponding Content-Type, wrapped as an Option
-//    */
-//  private[hawk] def extractPayload(req: HttpMessage)(implicit materializer: Materializer): Future[Option[(Array[Byte], String)]] = {
-//    val entity = req.entity()
-//    if (entity.isKnownEmpty()) {
-//      Future.successful(None)
-//    }
-//    else {
-//      val contentType = entity.contentType().mediaType.toString()
-//
-//      entity.dataBytes
-//        .map { _.toArray[Byte] }
-//        .runFold(Array[Byte]()){ (a,b) => a ++ b }
-//        .map { a => Option((a, contentType)) }
-//    }
-//  }
+  /**
+    * Extracts payload information that is essential for Hawk payload validation from a message
+    *
+    * @param req Akka Http [[HttpMessage]] instance, usually coming from the current Akka Http [[akka.http.scaladsl.server.RequestContext]]
+    * @return Payload data represented as byte array and it's corresponding Content-Type, wrapped as an Option
+    */
+  private[hawk] def extractPayload(req: HttpMessage)(implicit materializer: Materializer, executionContext: ExecutionContext): Future[Option[(Array[Byte], String)]] = {
+    val entity = req.entity()
+    if (entity.isKnownEmpty()) {
+      Future.successful(None)
+    }
+    else {
+      val contentType = entity.contentType.mediaType.toString()
+
+      entity.dataBytes
+        .map { _.toArray[Byte] }
+        .runFold(Array[Byte]()){ (a,b) => a ++ b }
+        .map { a => Option((a, contentType)) }
+    }
+  }
 
   private[hawk] def extractUriString(uri: Uri): String = {
     // Akka Http URI separates path from additional query parameters
