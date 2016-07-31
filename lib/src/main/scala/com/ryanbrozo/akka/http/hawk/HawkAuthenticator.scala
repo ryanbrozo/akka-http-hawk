@@ -31,7 +31,7 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives._
 import com.ryanbrozo.akka.http.hawk.HawkError._
 import com.ryanbrozo.scala.hawk._
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration._
@@ -41,31 +41,13 @@ import scala.util._
 
 object HawkAuthenticator {
 
-  private val _conf = ConfigFactory.load()
-
-  private val _payloadValidationEnabled = _conf.getBoolean("akka.http.hawk.payloadValidation")
-  private val _timeSkewValidationEnabled = _conf.getBoolean("akka.http.hawk.timeSkewValidation")
-  private val _timeSkewInSeconds = _conf.getLong("akka.http.hawk.timeSkewInSeconds")
-  private val _maxUserRetrieverTimeInSeconds = _conf.getLong("akka.http.hawk.maxUserRetrieverTimeInSeconds") seconds
-  private val _nonceValidationEnabled = _conf.getBoolean("akka.http.hawk.nonceValidationEnabled")
-
-
-  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String): AuthenticationDirective[U] =
-    authenticateHawk(userRetriever, realm, Util.defaultTimestampProvider, Util.defaultNonceValidator)
-
-  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, timestampProvider: TimeStampProvider): AuthenticationDirective[U] =
-    authenticateHawk(userRetriever, realm, timestampProvider, Util.defaultNonceValidator)
-
-  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, nonceValidator: NonceValidator): AuthenticationDirective[U] =
-    authenticateHawk(userRetriever, realm, Util.defaultTimestampProvider, nonceValidator)
-
-  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, timestampProvider: TimeStampProvider,
-                                      nonceValidator: NonceValidator): AuthenticationDirective[U] = {
+  def authenticateHawk[U <: HawkUser](userRetriever: UserRetriever[U], realm: String, timestampProvider: TimeStampProvider = Util.defaultTimestampProvider,
+                                      nonceValidator: NonceValidator = Util.defaultNonceValidator, conf: Config = ConfigFactory.load()): AuthenticationDirective[U] = {
     extractMaterializer.flatMap { implicit mat =>
       extractExecutionContext.flatMap { implicit ec ⇒
         extractRequest.flatMap { req =>
           val hawkRequest = HawkRequest(req)
-          val authenticator = new HawkAuthenticator[U](timestampProvider, nonceValidator)(realm, userRetriever)
+          val authenticator = new HawkAuthenticator[U](conf, timestampProvider, nonceValidator)(realm, userRetriever)
           onSuccess(authenticator.authenticate(hawkRequest)).flatMap {
             case Right(u) =>
               provide(u)
@@ -89,12 +71,17 @@ object HawkAuthenticator {
 
 }
 
-class HawkAuthenticator[U <: HawkUser](timestampProvider: TimeStampProvider, nonceValidator: NonceValidator)
+class HawkAuthenticator[U <: HawkUser](conf: Config, timestampProvider: TimeStampProvider, nonceValidator: NonceValidator)
                                       (realm: String, userRetriever: UserRetriever[U])
                                         (implicit val executionContext: ExecutionContext)
   extends StrictLogging {
 
-  import HawkAuthenticator._
+
+  private val _payloadValidationEnabled = conf.getBoolean("akka.http.hawk.payloadValidation")
+  private val _timeSkewValidationEnabled = conf.getBoolean("akka.http.hawk.timeSkewValidation")
+  private val _timeSkewInSeconds = conf.getLong("akka.http.hawk.timeSkewInSeconds")
+  private val _maxUserRetrieverTimeInSeconds = conf.getLong("akka.http.hawk.maxUserRetrieverTimeInSeconds") seconds
+  private val _nonceValidationEnabled = conf.getBoolean("akka.http.hawk.nonceValidationEnabled")
 
   val SCHEME = HEADER_NAME
 
